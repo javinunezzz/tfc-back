@@ -202,27 +202,29 @@ class UserAdminController extends Controller
             $user->codigo = $codigo;
             $user->save();
 
-            DB::commit();
-
             // Generamos el link para verificar el correo que redirige al frontend
-            $verificationLink = env('FRONTEND_URL') . '/auth/verificar-email?email=' . urlencode($user->email) . '&code=' . $codigo;
+            $verificationLink = config('app.frontend_url') . '/auth/verificar-email?email=' . urlencode($user->email) . '&code=' . $codigo;
 
             // Mandamos el correo de verificación
             Mail::send('emails.verify-email', ['verificationLink' => $verificationLink], function ($message) use ($user) {
                 $message->to($user->email);
-                $message->from(env('MAIL_FROM_ADDRESS'), env('MAIL_FROM_NAME'));
+                $message->from(config('mail.from.address'), config('mail.from.name'));
                 $message->subject('Verifica tu correo electrónico');
             });
+
+            DB::commit();
 
             return response()->json([
                 'message' => 'Usuario creado. Por favor, verifica tu correo electrónico.',
                 'user' => $user
             ], 201);
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
+            // En caso de error, retornar un mensaje de error detallado
             return response()->json([
-                'message' => 'Hubo un error al registrar el usuario. ' . $e->getMessage()
+                'message' => 'Hubo un error al registrar el usuario.',
+                'error' => $e->getMessage()
             ], 500);
         }
     }
@@ -255,7 +257,7 @@ class UserAdminController extends Controller
 
             return response()->json([
                 'message' => 'Correo electrónico verificado correctamente.',
-                'redirectUrl' => env('FRONTEND_URL') . '/auth/login'
+                'redirectUrl' => config('app.frontend_url') . '/auth/login'
             ], 200);
 
         } catch (\Exception $e) {
@@ -340,12 +342,12 @@ class UserAdminController extends Controller
         ]);
 
         // Generar el enlace de restablecimiento
-        $resetLink = env('FRONTEND_URL') . "/auth/cambio-contrasena?email=" . ($user->email) . "&token=" . $token;
+        $resetLink = config('app.frontend_url') . "/auth/cambio-contrasena?email=" . ($user->email) . "&token=" . $token;
 
         // Enviar el correo con el enlace
         Mail::send('emails.reset-password', ['resetLink' => $resetLink], function ($message) use ($user) {
             $message->to($user->email);
-            $message->from(env('MAIL_FROM_ADDRESS'), env('MAIL_FROM_NAME'));
+            $message->from(config('mail.from.address'), config('mail.from.name'));
             $message->subject('Restablecimiento de contraseña');
         });
 
