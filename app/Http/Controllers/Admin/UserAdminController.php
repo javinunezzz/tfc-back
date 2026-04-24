@@ -221,7 +221,13 @@ class UserAdminController extends Controller
 
         } catch (\Throwable $e) {
             DB::rollBack();
-            // En caso de error, retornar un mensaje de error detallado
+
+            // Si es un error de validación, dejamos que Laravel lo maneje (devolverá 422)
+            if ($e instanceof \Illuminate\Validation\ValidationException) {
+                throw $e;
+            }
+
+            // En caso de otro tipo de error, retornar un mensaje de error detallado
             return response()->json([
                 'message' => 'Hubo un error al registrar el usuario.',
                 'error' => $e->getMessage()
