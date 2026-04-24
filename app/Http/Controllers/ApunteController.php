@@ -7,6 +7,7 @@ use App\Models\Descarga;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class ApunteController extends Controller
 {
@@ -98,8 +99,9 @@ class ApunteController extends Controller
 
             if ($request->hasFile('pdf')) {
                 $file = $request->file('pdf');
-                $uuid = \Ramsey\Uuid\Uuid::uuid4()->toString();
-                $fileName = $uuid . '.' . $request->input('titulo') . '.' . $file->getClientOriginalExtension();
+                $uuid = (string) Str::uuid();
+                $slugTitulo = Str::slug($request->input('titulo'));
+                $fileName = $uuid . '.' . $slugTitulo . '.' . $file->getClientOriginalExtension();
                 $destino = config('app.upload_pdf', 'pdf');
                 $file->storeAs($destino, $fileName);
             } else {

@@ -18,7 +18,7 @@ class PdfController extends Controller
      */
     public function show($fileName)
     {
-        $path = "/upload_noteshare/pdf/" . $fileName;
+        $path = config('app.upload_pdf') . $fileName;
 
         if (Storage::exists($path)) {
             // Devuelve el archivo PDF solicitado si existe

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Apunte;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class ApunteAdminController extends Controller
 {
@@ -19,9 +20,7 @@ class ApunteAdminController extends Controller
         $apuntes = Apunte::with(['user:id,name,username', 'categoria:id,nombre', 'asignatura:id,nombre'])->get();
 
         if ($apuntes->isEmpty()) {
-            return response()->json([
-                'message' => 'No se encontraron apuntes.'
-            ], 404);
+            return response()->json([], 200);
         }
 
         // Oculta los IDs redundantes
@@ -49,9 +48,10 @@ class ApunteAdminController extends Controller
 
             if ($request->hasFile('pdf')) {
                 $file = $request->file('pdf');
-                $uuid = \Ramsey\Uuid\Uuid::uuid4()->toString();
-                $fileName = $uuid . '.' . $request->input('titulo') . '.' . $file->getClientOriginalExtension();
-                $destino = env('UPLOAD_PDF', 'pdf');
+                $uuid = (string) Str::uuid();
+                $slugTitulo = Str::slug($request->input('titulo'));
+                $fileName = $uuid . '.' . $slugTitulo . '.' . $file->getClientOriginalExtension();
+                $destino = config('app.upload_pdf', 'pdf');
                 $file->storeAs($destino, $fileName);
             } else {
                 return response()->json(['message' => 'No se ha proporcionado un archivo PDF válido.'], 400);
@@ -156,14 +156,15 @@ class ApunteAdminController extends Controller
     public function download(string $id)
     {
         $apunte = Apunte::find($id);
+        $path = config('app.upload_pdf') . $apunte->pdf;
 
-        if (!$apunte || !Storage::exists($apunte->pdf)) {
+        if (!$apunte || !Storage::exists($path)) {
             return response()->json([
                 'message' => 'Archivo no encontrado.'
-            ], 404);
+            ], 200);
         }
 
-        return Storage::download($apunte->pdf);
+        return Storage::download($path);
     }
 
     /**
@@ -187,9 +188,7 @@ class ApunteAdminController extends Controller
             $apuntes = $query->get();
 
             if ($apuntes->isEmpty()) {
-                return response()->json([
-                    'message' => 'No se encontraron apuntes con los filtros seleccionados.'
-                ], 404);
+                return response()->json([], 200);
             }
 
             $apuntes->makeHidden(['user_id', 'categoria_id', 'asignatura_id']);
@@ -220,9 +219,7 @@ class ApunteAdminController extends Controller
                 ->get();
 
             if ($apuntes->isEmpty()) {
-                return response()->json([
-                    'message' => 'No se encontraron apuntes para este usuario.'
-                ], 404);
+                return response()->json([], 200);
             }
 
             $apuntes->makeHidden(['user_id', 'categoria_id', 'asignatura_id']);
