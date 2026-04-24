@@ -26,9 +26,7 @@ class SuscripcionController extends Controller
         $suscripciones = Suscripcion::with(['user:id,name'])->get();
 
         if ($suscripciones->isEmpty()) {
-            return response()->json([
-                'message' => 'No se encontraron suscripciones.'
-            ], 404);
+            return response()->json([], 200);
         }
 
         // Oculta los IDs redundantes.

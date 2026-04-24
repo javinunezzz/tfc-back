@@ -58,9 +58,7 @@ class FavoritoController extends Controller
             });
 
         if ($favoritos->isEmpty()) {
-            return response()->json([
-                'message' => 'No se encontraron favoritos.'
-            ], 404);
+            return response()->json([], 200);
         }
 
         return response()->json($favoritos);
@@ -106,7 +104,7 @@ class FavoritoController extends Controller
                 'asignatura' => $apunte->asignatura->nombre
             ], function($message) use ($apunteOwner) {
                 $message->to($apunteOwner->email);
-                $message->from(env('MAIL_FROM_ADDRESS'), env('MAIL_FROM_NAME'));
+                $message->from(config('mail.from.address'), config('mail.from.name'));
                 $message->subject('¡Nuevo favorito en tus apuntes!');
             });
 

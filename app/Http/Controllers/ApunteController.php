@@ -39,8 +39,9 @@ class ApunteController extends Controller
 
             if ($apuntes->isEmpty()) {
                 return response()->json([
-                    'message' => 'No hay apuntes disponibles con estos filtros.'
-                ], 204);
+                    'total_apuntes' => 0,
+                    'apuntes' => []
+                ], 200);
             }
 
             $apuntes->makeHidden(['user_id', 'categoria_id', 'asignatura_id']);
@@ -99,7 +100,7 @@ class ApunteController extends Controller
                 $file = $request->file('pdf');
                 $uuid = \Ramsey\Uuid\Uuid::uuid4()->toString();
                 $fileName = $uuid . '.' . $request->input('titulo') . '.' . $file->getClientOriginalExtension();
-                $destino = env('UPLOAD_PDF', 'pdf');
+                $destino = config('app.upload_pdf', 'pdf');
                 $file->storeAs($destino, $fileName);
             } else {
                 return response()->json(['message' => 'No se ha proporcionado un archivo PDF válido.'], 400);
@@ -134,9 +135,7 @@ class ApunteController extends Controller
                             ->get();
 
             if ($apuntes->isEmpty()) {
-                return response()->json([
-                    'message' => 'No tienes apuntes guardados.'
-                ], 404);
+                return response()->json([], 200);
             }
 
             $apuntes->makeHidden(['user_id', 'categoria_id', 'asignatura_id']);
@@ -178,7 +177,7 @@ class ApunteController extends Controller
             }
         }
 
-        $rutaPDF = env('UPLOAD_PDF') . $apunte->pdf;
+        $rutaPDF = config('app.upload_pdf') . $apunte->pdf;
 
         if (!Storage::exists($rutaPDF)) {
             return response()->json([
@@ -234,11 +233,7 @@ class ApunteController extends Controller
                             ->get();
 
             if ($apuntes->isEmpty()) {
-                return response()->json([
-                    'message' => $termino
-                        ? "No se encontraron apuntes en {$categoria_nombre} para la asignatura seleccionada con ese término de búsqueda."
-                        : "No hay apuntes disponibles en {$categoria_nombre} para la asignatura seleccionada."
-                ], 404);
+                return response()->json([], 200);
             }
 
             $apuntes->makeHidden(['user_id', 'categoria_id', 'asignatura_id']);
