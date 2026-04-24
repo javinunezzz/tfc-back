@@ -1,0 +1,50 @@
+services:
+  laravel:
+    image: laravel
+    restart: always
+    container_name: laravel
+    networks:
+      - red_caddy
+    depends_on:
+      - mysql
+    volumes:
+      - ./storage:/app/storage
+      - pdf_uploads:/app/storage/app/private/upload_noteshare/pdf
+
+  mysql:
+    image: mysql:latest
+    container_name: mysql
+    restart: always
+    networks:
+      - red_caddy
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - pdf_uploads:/app/storage/app/private/upload_noteshare/pdf
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    restart: always
+    container_name: phpmyadmin
+    networks:
+      - red_caddy
+    depends_on:
+      - mysql
+    environment:
+      PMA_HOST: mysql
+    ports:
+      - "8080:80"
+
+networks:
+  red_caddy:
+    external: true
+
+volumes:
+  mysql_data:
+  pdf_uploads:
